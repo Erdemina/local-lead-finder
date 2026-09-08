@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{business_name}}</title>
+<style>
+  :root { --accent: #7c3aed; --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text);
+         line-height: 1.6; }
+  .hero { min-height: 70vh; display: flex; flex-direction: column; justify-content: center;
+          align-items: center; text-align: center; padding: 48px 24px;
+          background: radial-gradient(ellipse at top, #312e81 0%, var(--bg) 65%); }
+  .hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(90deg, #a78bfa, #38bdf8);
+             -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { margin-top: 12px; font-size: 1.2rem; color: #94a3b8; }
+  .cta { margin-top: 32px; background: var(--accent); color: #fff; padding: 16px 40px;
+         border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 1.05rem;
+         box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4); }
+  .cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+           max-width: 900px; margin: 0 auto; padding: 56px 24px; }
+  .card { background: var(--card); border-radius: 16px; padding: 28px; }
+  .card h3 { color: #a78bfa; margin-bottom: 8px; font-size: 1.05rem; }
+  footer { text-align: center; padding: 28px; color: #64748b; font-size: 0.9rem; }
+  @media (max-width: 600px) { .hero h1 { font-size: 2rem; } }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>{{business_name}}</h1>
+  {{#if category}}<p>{{category}}</p>{{/if}}
+  {{#if phone}}<a class="cta" href="tel:{{phone_href}}">Bize Ulaşın</a>{{/if}}
+</div>
+<div class="cards">
+  <div class="card">
+    <h3>Hakkımızda</h3>
+    {{#if about}}<p>{{about}}</p>{{/if}}
+    <p>İşimizi tutkuyla yapıyor, müşterilerimize modern ve güvenilir hizmet sunuyoruz.</p>
+  </div>
+  {{#if phone}}
+  <div class="card">
+    <h3>Telefon</h3>
+    <p><a href="tel:{{phone_href}}" style="color:#38bdf8;text-decoration:none">{{phone}}</a></p>
+  </div>
+  {{/if}}
+  {{#if address}}
+  <div class="card">
+    <h3>Adres</h3>
+    <p>{{address}}</p>
+  </div>
+  {{/if}}
+</div>
+<footer>© {{year}} {{business_name}}</footer>
+</body>
+</html>

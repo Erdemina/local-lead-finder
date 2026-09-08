@@ -1,0 +1,104 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-llf}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD gerekli}
+      - POSTGRES_DB=${POSTGRES_DB:-leadfinder}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # 5432 makinede başka projede dolu
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llf} -d ${POSTGRES_DB:-leadfinder}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    ports:
+      # 6379 makinede başka projede dolu
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # Tek seferlik migration servisi — app ve worker asla kendisi migrate etmez
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-llf}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-leadfinder}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-llf}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-leadfinder}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-llf}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-leadfinder}
+      - REDIS_URL=redis://redis:6379
+      - SITES_OUTPUT_DIR=/data/websites
+    volumes:
+      # VPS'te: SITES_HOST_DIR=/var/www/websites (host Nginx bu dizini sunar)
+      - ${SITES_HOST_DIR:-./data/websites}:/data/websites
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Lokal gelistirmede uretilen siteleri sunar; VPS'te host Nginx ayni isi yapar
+  sites-web:
+    image: nginx:alpine
+    ports:
+      - "8088:80"
+    volumes:
+      - ${SITES_HOST_DIR:-./data/websites}:/usr/share/nginx/html/websites:ro
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

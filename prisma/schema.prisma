@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  super_admin
+  tenant_owner
+  tenant_member
+}
+
+enum TenantStatus {
+  active
+  suspended
+}
+
+enum LeadStage {
+  found
+  contacted
+  demo_sent
+  negotiation
+  won
+  lost
+}
+
+enum WebsiteHealth {
+  unknown
+  no_website
+  green
+  yellow
+  red
+}
+
+enum SearchMode {
+  interactive
+  sweep
+}
+
+enum SearchStatus {
+  queued
+  running
+  done
+  failed
+}
+
+enum ActionStatus {
+  queued
+  running
+  done
+  failed
+}
+
+enum SiteStatus {
+  queued
+  generating
+  ready
+  failed
+}
+
+enum SourceKind {
+  api
+  scraper
+  import
+}
+
+model Tenant {
+  id            String       @id @default(cuid())
+  name          String
+  slug          String       @unique
+  status        TenantStatus @default(active)
+  retentionDays Int?
+  nicheProfile  Json?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  users    User[]
+  leads    Lead[]
+  searches Search[]
+  actions  Action[]
+  sites    GeneratedSite[]
+  notes    LeadNote[]
+  results  SearchResult[]
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String?   @unique
+  passwordHash String
+  name         String
+  role         UserRole  @default(tenant_owner)
+  tenantId     String?
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model SearchSource {
+  id              String     @id @default(cuid())
+  code            String     @unique
+  name            String
+  kind            SourceKind
+  enabledGlobally Boolean    @default(true)
+  tosNotes        String?
+  rateLimitPerSec Float?
+  credentialsEnc  String?
+  config          Json?
+}
+
+model Search {
+  id           String       @id @default(cuid())
+  tenantId     String
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  userId       String
+  mode         SearchMode
+  sourceCode   String
+  params       Json
+  status       SearchStatus @default(queued)
+  resultCount  Int          @default(0)
+  enrichWithAi Boolean      @default(false)
+  /** Toplu tarama kimliği — 81 il taraması tek iş olarak izlenip dışa aktarılabilsin */
+  batchId      String?
+  batchLabel   String?
+  error        String?
+  createdAt    DateTime     @default(now())
+  finishedAt   DateTime?
+
+  results SearchResult[]
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, batchId])
+}
+
+model SearchResult {
+  id              String        @id @default(cuid())
+  searchId        String
+  search          Search        @relation(fields: [searchId], references: [id], onDelete: Cascade)
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  name            String
+  category        String?
+  address         String?
+  city            String?
+  district        String?
+  phone           String?
+  website         String?
+  lat             Float?
+  lng             Float?
+  sourceCode      String
+  sourceRecordId  String?
+  websiteHealth   WebsiteHealth @default(unknown)
+  healthCheckedAt DateTime?
+  healthDetail    Json?
+  score           Float?
+  raw             Json?
+  aiScore         Int?
+  aiNote          String?
+  aiReason        String?
+  aiModel         String?
+
+  @@index([searchId])
+  @@index([tenantId])
+}
+
+model Lead {
+  id              String        @id @default(cuid())
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  name            String
+  category        String?
+  address         String?
+  city            String?
+  district        String?
+  phone           String?
+  email           String?
+  website         String?
+  lat             Float?
+  lng             Float?
+  stage           LeadStage     @default(found)
+  websiteHealth   WebsiteHealth @default(unknown)
+  healthCheckedAt DateTime?
+  healthDetail    Json?
+  dataSource      String
+  sourceRecordId  String?
+  searchId        String?
+  collectedAt     DateTime      @default(now())
+  extra           Json?
+  aiScore         Int?
+  aiNote          String?
+  aiReason        String?
+  aiModel         String?
+  lastContactAt   DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  notes   LeadNote[]
+  actions Action[]
+  sites   GeneratedSite[]
+
+  @@unique([tenantId, sourceRecordId, dataSource])
+  @@index([tenantId, stage])
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model Action {
+  id         String       @id @default(cuid())
+  tenantId   String
+  tenant     Tenant       @relation(fields: [tenantId], references: [id])
+  leadId     String
+  lead       Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId     String
+  type       String
+  status     ActionStatus @default(queued)
+  input      Json
+  output     Json?
+  jobId      String?
+  error      String?
+  createdAt  DateTime     @default(now())
+  finishedAt DateTime?
+
+  site GeneratedSite?
+
+  @@index([tenantId, createdAt])
+}
+
+model GeneratedSite {
+  id          String     @id @default(cuid())
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  leadId      String
+  lead        Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actionId    String     @unique
+  action      Action     @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  slug        String     @unique
+  templateId  String
+  status      SiteStatus @default(queued)
+  url         String?
+  fields      Json
+  createdAt   DateTime   @default(now())
+  publishedAt DateTime?
+
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String
+  actorRole   String
+  tenantId    String?
+  action      String
+  targetType  String?
+  targetId    String?
+  meta        Json?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+model GeocodeCache {
+  id        String   @id @default(cuid())
+  query     String   @unique
+  lat       Float
+  lng       Float
+  bbox      Json?
+  createdAt DateTime @default(now())
+}
