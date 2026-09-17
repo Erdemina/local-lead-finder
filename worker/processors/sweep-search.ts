@@ -62,7 +62,7 @@ export async function processSweepSearch(job: Job<SweepSearchJobData>): Promise<
 
     const withHealth = prospects.map((p) => {
       const health: HealthResult = p.website
-        ? (healthMap.get(p) ?? { status: 'green', detail: { reason: 'Kontrol edilmedi' } })
+        ? (healthMap.get(p) ?? { status: 'unknown', detail: { reason: 'Kontrol edilmedi' } })
         : { status: 'no_website', detail: { reason: 'Web sitesi yok' } }
       return { prospect: p, health }
     })
@@ -74,6 +74,12 @@ export async function processSweepSearch(job: Job<SweepSearchJobData>): Promise<
       .sort(
         (a, b) => (HEALTH_PRIORITY[a.health.status] ?? 9) - (HEALTH_PRIORITY[b.health.status] ?? 9)
       )
+      // Adapter bilerek fazla çekiyor; kırpma filtreden sonra yapılır.
+      .slice(0, params.limit)
+
+    // Kuyruk yeniden denemesi (attempts:2) aynı taramayı ikinci kez işleyebilir;
+    // önceki denemenin yazdıkları silinmezse sonuçlar mükerrer kaydediliyordu.
+    await prismaUnscoped.searchResult.deleteMany({ where: { searchId, tenantId } })
 
     await prismaUnscoped.searchResult.createMany({
       data: filtered.map(({ prospect, health }) => ({
@@ -91,7 +97,7 @@ export async function processSweepSearch(job: Job<SweepSearchJobData>): Promise<
         sourceCode: 'overpass',
         sourceRecordId: prospect.sourceRecordId,
         websiteHealth: health.status as WebsiteHealth,
-        healthCheckedAt: new Date(),
+        healthCheckedAt: health.status === 'unknown' ? null : new Date(),
         healthDetail: health.detail as unknown as Prisma.InputJsonValue,
       })),
     })

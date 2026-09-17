@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const label =
       body.categoryKey ?? body.categoryText ?? 'tarama'
 
-    // Tüm taramalar + toplam kredi tek transaction'da — kredi yetmezse hiçbiri oluşmaz.
+    // Tüm il taramaları tek transaction'da — biri başarısızsa hiçbiri oluşmaz.
     const searches = await prismaUnscoped.$transaction(async (tx) => {
       const created = []
       for (const p of targets) {

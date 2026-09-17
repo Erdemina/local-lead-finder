@@ -31,6 +31,11 @@ async function main() {
     w.on('failed', (job, err) => {
       console.error(`[worker] iş başarısız: ${w.name}/${job?.id} —`, err.message)
     })
+    // 'error' dinleyicisi olmayan bir EventEmitter, Redis kesintisi gibi bir olayda
+    // tüm süreci düşürür. Bunlar iş hatası değil altyapı hatası; loglanıp geçilir.
+    w.on('error', (err) => {
+      console.error(`[worker] kuyruk hatası: ${w.name} —`, err.message)
+    })
   }
 
   // Tekrarlayan işler (idempotent upsert)

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     await resolveSource(ctx, 'overpass')
 
-    // Konumu şimdi çöz — hatalıysa kredi harcamadan reddet
+    // Konumu şimdi çöz — hatalıysa kuyruğa iş atmadan reddet
     let coords = body.lat != null && body.lng != null ? { lat: body.lat, lng: body.lng } : null
     if (!coords) {
       const query = body.district

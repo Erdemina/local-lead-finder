@@ -115,16 +115,26 @@ export async function scoreProspects(
 
   const byId = new Map(items.map((i) => [i.id, i]))
 
+  let lastError: unknown = null
+
   for (let offset = 0; offset < items.length; offset += BATCH_SIZE) {
     const batch = items.slice(offset, offset + BATCH_SIZE)
-    const result = await client.run<{ scores?: unknown[] }>({
-      system: SYSTEM,
-      user: buildPrompt(product, batch),
-      tool: SUBMIT_TOOL,
-      webSearch: false,
-      effort: 'low',
-      maxTokens: 8000,
-    })
+    let result: { scores?: unknown[] }
+    try {
+      result = await client.run<{ scores?: unknown[] }>({
+        system: SYSTEM,
+        user: buildPrompt(product, batch),
+        tool: SUBMIT_TOOL,
+        webSearch: false,
+        effort: 'low',
+        maxTokens: 8000,
+      })
+    } catch (e) {
+      // Tek partinin hatası diğerlerini götürmemeli — kısmi skorlama her zaman
+      // skorsuz kalmaktan iyidir. Hiçbiri tutmazsa hata en sonda yükseltilir.
+      lastError = e
+      continue
+    }
 
     for (const row of Array.isArray(result?.scores) ? result.scores : []) {
       const rec = row as Record<string, unknown>
@@ -141,6 +151,8 @@ export async function scoreProspects(
 
     onProgress?.(Math.min(offset + BATCH_SIZE, items.length), items.length)
   }
+
+  if (out.size === 0 && lastError) throw lastError
 
   return out
 }

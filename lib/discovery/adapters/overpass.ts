@@ -48,6 +48,14 @@ function resolveCategories(q: SearchQuery): OsmCategory[] {
   throw new Error('Kategori seçin veya bir işletme türü yazın.')
 }
 
+/**
+ * Sorgu bilerek istenenden fazla kayıt çeker: sonuçlar web sitesi sağlığına göre
+ * elendiği için ham sayı, kullanıcıya dönen sayıdan belirgin yüksek olmalı.
+ */
+export function overFetchCount(limit: number): number {
+  return Math.min(Math.max(limit, 1) * 3, 600)
+}
+
 function buildQuery(q: SearchQuery, categories: OsmCategory[]): string {
   const around = `(around:${Math.round(q.radiusM)},${q.lat},${q.lng})`
   const lines: string[] = []
@@ -59,7 +67,7 @@ function buildQuery(q: SearchQuery, categories: OsmCategory[]): string {
     }
   }
 
-  return `[out:json][timeout:25];(${lines.join('')});out center tags ${Math.min(q.limit * 3, 600)};`
+  return `[out:json][timeout:25];(${lines.join('')});out center tags ${overFetchCount(q.limit)};`
 }
 
 function buildAddress(tags: Record<string, string>): string | undefined {
@@ -125,8 +133,15 @@ async function askEndpoint(
     if (res.status === 504 || res.status >= 500) return { retryable: `sunucu hatası (${res.status})` }
     if (!res.ok) throw new Error(`Overpass sorgusu başarısız (${res.status})`)
 
-    const data = (await res.json()) as OverpassResponse
-    // Overrpass hataları 200 ile de dönebiliyor; sorgu timeout'u remark alanına yazılır.
+    // Sunucu aşırı yüklendiğinde HTTP 200 + XHTML hata sayfası dönüyor (ölçüldü:
+    // "runtime error: ... Dispatcher_Client::request_read_and_idx::timeout").
+    // Gövde JSON.parse'a verilirse kullanıcıya "Unexpected token '<'" sızıyordu.
+    const text = await res.text()
+    if (!text.trimStart().startsWith('{')) {
+      return { retryable: 'sunucu meşgul (JSON yerine hata sayfası döndü)' }
+    }
+    const data = JSON.parse(text) as OverpassResponse
+    // Overpass hataları 200 ile de dönebiliyor; sorgu timeout'u remark alanına yazılır.
     if (data.remark && /timed out|out of memory/i.test(data.remark)) {
       return { retryable: `sorgu zaman aşımı (${data.remark})` }
     }
@@ -182,6 +197,7 @@ export function createOverpassAdapter(config?: { url?: string; rateLimitPerSec?:
 
       const seen = new Set<string>()
       const prospects: Prospect[] = []
+      const overFetch = overFetchCount(q.limit)
       for (const el of data.elements ?? []) {
         const p = toProspect(el, categoryLabel)
         if (!p) continue
@@ -190,7 +206,10 @@ export function createOverpassAdapter(config?: { url?: string; rateLimitPerSec?:
         if (seen.has(dedupeKey)) continue
         seen.add(dedupeKey)
         prospects.push(p)
-        if (prospects.length >= q.limit) break
+        // q.limit'e BURADA kırpılmamalı: çağıran taraf sonuçları web sitesi durumuna
+        // göre eleyip sonra kırpıyor. Burada kırpmak, sorgunun bilerek 3 kat fazla
+        // çektiği fazlalığı çöpe atıp filtreden sonra elde çok az aday bırakıyordu.
+        if (prospects.length >= overFetch) break
       }
       return prospects
     },

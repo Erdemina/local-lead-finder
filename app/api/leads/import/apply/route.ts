@@ -56,7 +56,11 @@ export async function POST(req: NextRequest) {
     let notesAdded = 0
     let created = 0
 
-    await prismaUnscoped.$transaction(async (tx) => {
+    // Prisma'nın etkileşimli transaction varsayılanı 5 sn; satır başına 1-3 sorgu ile
+    // birkaç yüz satırda "Transaction already closed" hatasına düşüyordu. Sınır,
+    // route'un maxDuration'ı ile hizalandı.
+    await prismaUnscoped.$transaction(
+      async (tx) => {
       for (const row of updates) {
         const lead = ownedById.get(row.leadId!)
         if (!lead) {
@@ -142,7 +146,9 @@ export async function POST(req: NextRequest) {
           notesAdded++
         }
       }
-    })
+      },
+      { timeout: 55_000, maxWait: 10_000 }
+    )
 
     await audit(ctx, 'leads.import', {
       tenantId,

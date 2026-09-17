@@ -25,7 +25,7 @@ export interface EngineParams {
   limit: number
   websiteStatus: WebsiteStatusFilter
   sourceCode?: string
-  /** Sonuçları AI ile skorla + notlandır (ek kredi) */
+  /** Sonuçları AI ile skorla + notlandır */
   enrichWithAi?: boolean
   /** Skorlama promptunda kullanılacak "ne satıyoruz" bilgisi */
   product?: string
@@ -216,7 +216,7 @@ export async function runInteractiveSearch(
 
     const withHealth = prospects.map((p) => {
       const health: HealthResult = p.website
-        ? (healthMap.get(p) ?? { status: 'green', detail: { reason: 'Kontrol edilmedi' } })
+        ? (healthMap.get(p) ?? { status: 'unknown', detail: { reason: 'Kontrol edilmedi' } })
         : { status: 'no_website', detail: { reason: 'Web sitesi yok' } }
       return { prospect: p, health }
     })
@@ -230,8 +230,11 @@ export async function runInteractiveSearch(
       (a, b) => (HEALTH_PRIORITY[a.health.status] ?? 9) - (HEALTH_PRIORITY[b.health.status] ?? 9)
     )
 
+    // Kırpma filtreden SONRA: adapter bilerek fazla çekiyor, kullanıcı istediği sayıyı alır.
+    const kept = filtered.slice(0, params.limit)
+
     const results: EngineResultItem[] = []
-    for (const { prospect, health } of filtered) {
+    for (const { prospect, health } of kept) {
       const row = await prismaUnscoped.searchResult.create({
         data: {
           searchId: search.id,
@@ -248,7 +251,7 @@ export async function runInteractiveSearch(
           sourceCode,
           sourceRecordId: prospect.sourceRecordId,
           websiteHealth: health.status as WebsiteHealth,
-          healthCheckedAt: prospect.website || health.status === 'no_website' ? new Date() : null,
+          healthCheckedAt: health.status === 'unknown' ? null : new Date(),
           healthDetail: health.detail as unknown as Prisma.InputJsonValue,
           score: prospect.score,
           raw: prospect.raw as Prisma.InputJsonValue,

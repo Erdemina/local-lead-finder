@@ -277,6 +277,9 @@ function openRouterClient(config: AiSourceConfig, apiKey: string): AiClient {
               name: opts.tool.name,
               description: opts.tool.description,
               parameters: opts.tool.schema,
+              // Anthropic yolundaki strict:true ile eşitlensin; şema zaten
+              // additionalProperties:false + tam required listesi taşıyor.
+              strict: true,
             },
           },
         ],

@@ -34,7 +34,7 @@ const CERT_ERROR_CODES = new Set([
   'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
 ])
 
-export type HealthStatus = 'green' | 'yellow' | 'red' | 'no_website'
+export type HealthStatus = 'green' | 'yellow' | 'red' | 'no_website' | 'unknown'
 
 export interface HealthDetail {
   httpStatus?: number
