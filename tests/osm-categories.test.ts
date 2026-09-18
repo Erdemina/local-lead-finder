@@ -16,6 +16,20 @@ describe('serbest metin → kategori eşleştirme', () => {
     expect(matchOsmCategories('mali müşavir')[0].key).toBe('muhasebe')
   })
 
+  it('sağlık ve serbest meslek kategorilerini eşler', () => {
+    expect(matchOsmCategories('psikolog')[0].key).toBe('psikolog')
+    expect(matchOsmCategories('Psikiyatrist')[0].key).toBe('psikolog')
+    expect(matchOsmCategories('aile danışmanı')[0].key).toBe('psikolog')
+    expect(matchOsmCategories('fizik tedavi')[0].key).toBe('fizyoterapi')
+    expect(matchOsmCategories('diyetisyen')[0].key).toBe('diyetisyen')
+    expect(matchOsmCategories('gözlükçü')[0].key).toBe('optik')
+    expect(matchOsmCategories('muayenehane')[0].key).toBe('doktor')
+    expect(matchOsmCategories('noter')[0].key).toBe('noter')
+    expect(matchOsmCategories('dershane')[0].key).toBe('kurs')
+    expect(matchOsmCategories('kreş')[0].key).toBe('anaokulu')
+    expect(matchOsmCategories('yazılım firması')[0].key).toBe('yazilim')
+  })
+
   it('çok kelimeli ve büyük/küçük harf karışık metni eşler', () => {
     expect(matchOsmCategories('Oto Tamir')[0].key).toBe('oto')
     expect(matchOsmCategories('DİŞ HEKİMİ')[0].key).toBe('dis')
@@ -28,7 +42,7 @@ describe('serbest metin → kategori eşleştirme', () => {
 
   it('eşleşen kategorilerin OSM seçicileri geçerli biçimde', () => {
     for (const c of matchOsmCategories('kuaför')) {
-      for (const s of c.selectors) expect(s).toMatch(/^[a-z_]+=[a-z_]+$/)
+      for (const s of c.selectors) expect(s).toMatch(/^[a-z_:]+=[a-z_]+$/)
     }
   })
 

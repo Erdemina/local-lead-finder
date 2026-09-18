@@ -18,7 +18,23 @@ export const OSM_CATEGORIES: OsmCategory[] = [
   { key: 'dis', label: 'Diş Kliniği', selectors: ['amenity=dentist'] },
   { key: 'veteriner', label: 'Veteriner Kliniği', selectors: ['amenity=veterinary'] },
   { key: 'eczane', label: 'Eczane', selectors: ['amenity=pharmacy'] },
+  { key: 'psikolog', label: 'Psikolog / Psikoterapist', selectors: ['healthcare=psychotherapist', 'healthcare=counselling', 'healthcare:speciality=psychiatry', 'healthcare:speciality=psychology'] },
+  { key: 'doktor', label: 'Doktor Muayenehanesi', selectors: ['amenity=doctors', 'healthcare=doctor'] },
+  { key: 'klinik', label: 'Klinik / Poliklinik / Tıp Merkezi', selectors: ['amenity=clinic', 'healthcare=clinic'] },
+  { key: 'fizyoterapi', label: 'Fizyoterapi / Rehabilitasyon', selectors: ['healthcare=physiotherapist', 'healthcare=rehabilitation'] },
+  { key: 'diyetisyen', label: 'Diyetisyen / Beslenme Danışmanı', selectors: ['healthcare=dietitian', 'healthcare=nutrition_counselling'] },
+  { key: 'optik', label: 'Optik / Gözlükçü', selectors: ['shop=optician', 'healthcare=optometrist'] },
+  { key: 'laboratuvar', label: 'Tıbbi Laboratuvar / Görüntüleme', selectors: ['healthcare=laboratory', 'healthcare=sample_collection'] },
+  { key: 'isitme', label: 'İşitme Merkezi', selectors: ['healthcare=audiologist', 'shop=hearing_aids'] },
+  { key: 'medikal', label: 'Medikal Malzeme', selectors: ['shop=medical_supply'] },
   { key: 'avukat', label: 'Avukatlık Bürosu', selectors: ['office=lawyer'] },
+  { key: 'noter', label: 'Noter', selectors: ['office=notary'] },
+  { key: 'danismanlik', label: 'Danışmanlık Firması', selectors: ['office=consulting'] },
+  { key: 'reklam', label: 'Reklam / Kreatif Ajans', selectors: ['office=advertising_agency'] },
+  { key: 'yazilim', label: 'Yazılım / BT Firması', selectors: ['office=it', 'office=software'] },
+  { key: 'muhendislik', label: 'Mühendislik Ofisi', selectors: ['office=engineer'] },
+  { key: 'kurs', label: 'Kurs / Dershane / Eğitim Merkezi', selectors: ['amenity=language_school', 'amenity=prep_school', 'amenity=training', 'amenity=music_school', 'amenity=driving_school'] },
+  { key: 'anaokulu', label: 'Anaokulu / Kreş', selectors: ['amenity=kindergarten', 'amenity=childcare'] },
   { key: 'mimar', label: 'Mimarlık Ofisi', selectors: ['office=architect'] },
   { key: 'muhasebe', label: 'Muhasebeci / Mali Müşavir', selectors: ['office=accountant'] },
   { key: 'emlak', label: 'Emlak Ofisi', selectors: ['office=estate_agent'] },
@@ -59,7 +75,23 @@ const SYNONYMS: Record<string, string[]> = {
   dis: ['dis', 'dentist', 'dis klinigi', 'dis hekimi', 'ortodonti'],
   veteriner: ['veteriner', 'vet', 'petklinik', 'hayvan'],
   eczane: ['eczane', 'pharmacy'],
+  psikolog: ['psikolog', 'psikoloji', 'psikoterapi', 'psikoterapist', 'psikiyatri', 'psikiyatrist', 'terapi', 'terapist', 'danisman psikolog', 'psychologist', 'therapist', 'counselling', 'aile danismani', 'pedagog'],
+  doktor: ['doktor', 'hekim', 'muayenehane', 'doctor', 'dahiliye', 'cocuk doktoru', 'kadin dogum', 'dermatolog', 'cildiye', 'goz doktoru', 'kbb', 'ortopedi', 'kardiyolog', 'uzman doktor'],
+  klinik: ['klinik', 'poliklinik', 'tip merkezi', 'saglik merkezi', 'clinic', 'saglik', 'medikal merkez', 'estetik klinik', 'sac ekimi'],
+  fizyoterapi: ['fizyoterapi', 'fizyoterapist', 'fizik tedavi', 'rehabilitasyon', 'physiotherapy', 'manuel terapi', 'osteopat', 'kiropraktik'],
+  diyetisyen: ['diyetisyen', 'diyet', 'beslenme', 'dietitian', 'nutrition', 'zayiflama'],
+  optik: ['optik', 'gozlukcu', 'gozluk', 'optisyen', 'optician', 'lens'],
+  laboratuvar: ['laboratuvar', 'tahlil', 'lab', 'goruntuleme', 'radyoloji', 'mr', 'tomografi', 'ultrason'],
+  isitme: ['isitme', 'isitme cihazi', 'odyolog', 'hearing'],
+  medikal: ['medikal', 'tibbi malzeme', 'ortopedik urun', 'medical supply'],
   avukat: ['avukat', 'hukuk', 'lawyer', 'hukuk burosu'],
+  noter: ['noter', 'noterlik', 'notary'],
+  danismanlik: ['danismanlik', 'danisman', 'consulting', 'yonetim danismanligi', 'is gelistirme', 'kobi danismani'],
+  reklam: ['reklam ajansi', 'ajans', 'kreatif', 'dijital ajans', 'sosyal medya ajansi', 'advertising', 'agency', 'tasarim ajansi', 'grafik tasarim'],
+  yazilim: ['yazilim', 'software', 'bilisim', 'bt', 'it firmasi', 'web tasarim', 'teknoloji', 'bilgisayar'],
+  muhendislik: ['muhendislik', 'muhendis', 'engineer', 'proje ofisi', 'insaat muhendisi', 'harita muhendisi'],
+  kurs: ['kurs', 'dershane', 'egitim', 'egitim merkezi', 'dil kursu', 'ingilizce kursu', 'muzik kursu', 'surucu kursu', 'ehliyet', 'etut', 'ozel ders', 'akademi', 'training', 'language school'],
+  anaokulu: ['anaokulu', 'kres', 'gunduz bakimevi', 'okul oncesi', 'kindergarten', 'cocuk yuvasi'],
   mimar: ['mimar', 'mimarlik', 'architect', 'ic mimar'],
   muhasebe: ['muhasebe', 'mali musavir', 'accountant', 'smmm'],
   emlak: ['emlak', 'gayrimenkul', 'estate', 'realtor'],
@@ -68,7 +100,7 @@ const SYNONYMS: Record<string, string[]> = {
   lastik: ['lastik', 'tyre', 'tire', 'lastikci'],
   cnc: ['cnc', 'torna', 'metal', 'kaynak', 'atolye', 'freze', 'imalat'],
   marangoz: ['marangoz', 'mobilya', 'ahsap', 'dogramaci'],
-  matbaa: ['matbaa', 'baski', 'print', 'kirtasiye baski', 'reklam'],
+  matbaa: ['matbaa', 'baski', 'print', 'kirtasiye baski', 'tabela', 'reklam baski'],
   fotograf: ['fotograf', 'foto', 'studyo', 'photo'],
   terzi: ['terzi', 'tailor', 'dikis'],
   cicek: ['cicek', 'cicekci', 'florist'],
@@ -95,6 +127,10 @@ function normalize(text: string): string {
     .trim()
 }
 
+// Etiketlerdeki ayırt edici olmayan kelimeler — tek başına eşleşme sayılmaz
+// ("yazılım firması" → "Danışmanlık Firması" gibi yanlış eşleşmeleri önler).
+const LABEL_STOPWORDS = new Set(['ofisi', 'ofis', 'firmasi', 'firma', 'merkezi', 'merkez', 'burosu', 'buro', 'klinigi', 'salonu', 'acentesi', 'atolyesi', 'malzeme'])
+
 /** Kullanıcının yazdığı serbest metne uyan kategorileri döndürür (alakalıdan alakasıza). */
 export function matchOsmCategories(text: string): OsmCategory[] {
   const q = normalize(text)
@@ -103,15 +139,18 @@ export function matchOsmCategories(text: string): OsmCategory[] {
 
   const scored: { category: OsmCategory; score: number }[] = []
   for (const category of OSM_CATEGORIES) {
-    const terms = [category.key, ...normalize(category.label).split(' '), ...(SYNONYMS[category.key] ?? [])]
+    const labelWords = normalize(category.label).split(' ').filter((w) => !LABEL_STOPWORDS.has(w))
+    const terms = [category.key, ...labelWords, ...(SYNONYMS[category.key] ?? [])]
       .map(normalize)
       .filter(Boolean)
 
+    // Eşit kademede daha uzun (daha özgül) terim öne geçer.
     let score = 0
     for (const term of terms) {
+      const bonus = Math.min(term.length, 20)
       if (term === q) score = Math.max(score, 100)
-      else if (q.includes(term) && term.length >= 3) score = Math.max(score, 60)
-      else if (words.some((w) => term.includes(w))) score = Math.max(score, 30)
+      else if (q.includes(term) && term.length >= 3) score = Math.max(score, 60 + bonus)
+      else if (words.some((w) => term.includes(w))) score = Math.max(score, 30 + bonus)
     }
     if (score > 0) scored.push({ category, score })
   }
