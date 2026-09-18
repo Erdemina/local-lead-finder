@@ -86,7 +86,7 @@ Migration'lar uygulama açılmadan önce otomatik çalışır. Veri kaynakların
 yönetici hesabını oluşturmak için:
 
 ```bash
-docker compose exec app node_modules/.bin/tsx scripts/seed.ts
+docker compose exec worker node_modules/.bin/tsx scripts/seed.ts
 ```
 
 Uygulama <http://localhost:3000>, üretilen demo siteler

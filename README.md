@@ -85,7 +85,7 @@ Migrations run automatically before the app starts. Seed the data sources and
 the first admin account:
 
 ```bash
-docker compose exec app node_modules/.bin/tsx scripts/seed.ts
+docker compose exec worker node_modules/.bin/tsx scripts/seed.ts
 ```
 
 The app is then on <http://localhost:3000> and generated demo sites on
