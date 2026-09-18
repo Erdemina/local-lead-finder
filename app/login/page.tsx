@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MapPin } from 'lucide-react'
 import { TR } from '@/lib/i18n/tr'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 function LoginForm() {
   const router = useRouter()
@@ -78,7 +79,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-muted/40 p-4">
+      <ThemeToggle className="absolute right-4 top-4" />
       <Suspense>
         <LoginForm />
       </Suspense>

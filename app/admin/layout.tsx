@@ -12,6 +12,7 @@ import {
 import { getSessionContext } from '@/lib/auth-context'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { LogoutButton } from '@/app/_components/shell/logout-button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { TR } from '@/lib/i18n/tr'
 
 export const dynamic = 'force-dynamic'
@@ -61,7 +62,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               {TR.nav.tenantApp}
             </Link>
           </nav>
-          <div className="border-t p-3">
+          <div className="space-y-2 border-t p-3">
+            <ThemeToggle variant="sidebar" />
             <LogoutButton />
           </div>
         </aside>

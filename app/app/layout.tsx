@@ -5,6 +5,7 @@ import { getSessionContext, AuthError, type SessionContext } from '@/lib/auth-co
 import { prismaUnscoped } from '@/lib/db'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { LogoutButton } from '@/app/_components/shell/logout-button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { TR } from '@/lib/i18n/tr'
 
 export const dynamic = 'force-dynamic'
@@ -75,6 +76,7 @@ export default async function TenantLayout({ children }: { children: React.React
                   <div className="font-medium text-foreground">{tenant.name}</div>
                 </div>
               )}
+              <ThemeToggle variant="sidebar" />
               <LogoutButton />
             </div>
           </aside>
