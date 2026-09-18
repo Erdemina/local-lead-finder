@@ -29,6 +29,16 @@ export async function getSessionContext(): Promise<SessionContext> {
   const role = (session.user.role ?? 'tenant_owner') as Role
   const tenantId = session.user.tenantId ?? null
 
+  // JWT'deki kullanıcı DB'de yoksa (ör. DB sıfırlandı, çerez eski) → 401,
+  // yoksa tenant kontrolü yanıltıcı bir "çalışma alanı bulunamadı" verir.
+  const user = await prismaUnscoped.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true },
+  })
+  if (!user) {
+    throw new AuthError(401, 'Oturumunuz geçersiz. Lütfen tekrar giriş yapın.')
+  }
+
   if (tenantId) {
     const tenant = await prismaUnscoped.tenant.findUnique({
       where: { id: tenantId },

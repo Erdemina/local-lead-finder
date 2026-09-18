@@ -25,8 +25,11 @@ export default async function TenantLayout({ children }: { children: React.React
   } catch (e) {
     if (e instanceof AuthError && e.status === 403) {
       return (
-        <div className="flex min-h-screen items-center justify-center p-8 text-center">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
           <p className="max-w-md text-lg text-muted-foreground">{e.message}</p>
+          <div className="w-40">
+            <LogoutButton />
+          </div>
         </div>
       )
     }
